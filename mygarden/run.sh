@@ -1,21 +1,23 @@
-#!/bin/bash
-set -x  # Affiche chaque commande exécutée
+#!/usr/bin/with-contenv bashio
 
-echo "=== DÉMARRAGE MYGARDEN ===" >&2
-echo "Date: $(date)" >&2
-echo "User: $(whoami)" >&2
-echo "PWD: $(pwd)" >&2
+bashio::log.info "Démarrage de add-on MyGarden..."
 
-echo "=== Test Python ===" >&2
-/venv/bin/python3 --version 2>&1 || echo "ERREUR: Python pas trouvé!" >&2
+export PERENUAL_API_KEY=$(bashio::config 'perenual_api_key')
+export DB_PATH="/data/mygarden.db"
 
-echo "=== Test fichiers ===" >&2
-ls -la /app/ 2>&1 || echo "ERREUR: /app/ n'existe pas!" >&2
-test -f /app/main.py && echo "✓ main.py existe" >&2 || echo "✗ main.py MANQUANT!" >&2
+if bashio::services.available "mqtt"; then
+    export MQTT_HOST=$(bashio::services mqtt "host")
+    export MQTT_PORT=$(bashio::services mqtt "port")
+    export MQTT_USER=$(bashio::services mqtt "username")
+    export MQTT_PASS=$(bashio::services mqtt "password")
+    bashio::log.info "MQTT détecté: host=${MQTT_HOST} port=${MQTT_PORT} user=${MQTT_USER}"
+else
+    bashio::log.warning "MQTT non disponible !"
+fi
 
-echo "=== Environnement ===" >&2
-env | grep -E "(PERENUAL|MQTT|DB_PATH|PATH)" >&2
-
-echo "=== LANCEMENT PYTHON ===" >&2
+mkdir -p /data
 cd /app
-exec /venv/bin/python3 main.py 2>&1
+
+export PYTHONUNBUFFERED=1
+
+exec /venv/bin/python3 main.py
