@@ -304,9 +304,12 @@ MQTT_USER = os.environ.get("MQTT_USER", "")
 MQTT_PASS = os.environ.get("MQTT_PASS", "")
 
 def publish_today_to_mqtt():
+    print(f">>> MQTT_HOST={os.environ.get('MQTT_HOST')}")
     if not os.environ.get("MQTT_HOST"):
-        print("MQTT non configuré, publication ignorée.")
+        print(">>> MQTT non configuré, publication ignorée.")
         return
+    # ... reste du code
+    
     now = datetime.now()
     current_month = now.month
 
@@ -362,12 +365,15 @@ def publish_today_to_mqtt():
 
 
 def daily_scheduler():
+    print(">>> daily_scheduler démarré")
     while True:
         try:
+            print(">>> Tentative de publication MQTT...")
             publish_today_to_mqtt()
+            print(">>> Publication MQTT terminée")
         except Exception as e:
-            print(f"Erreur MQTT: {e}")
-        time.sleep(3600)  # vérifie toutes les heures
+            print(f">>> Erreur MQTT: {e}")
+        time.sleep(3600)
 
 if __name__ == "__main__":
     init_db()
