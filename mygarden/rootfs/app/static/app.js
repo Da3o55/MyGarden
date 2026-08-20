@@ -57,7 +57,7 @@ function renderPlantCard(p, editable = false) {
 
 // ---------- Onglet Aujourd'hui ----------
 async function loadToday() {
-    const res = await fetch("/api/today");
+    const res = await fetch("api/today");
     const data = await res.json();
 
     document.getElementById("today-date").textContent =
@@ -80,7 +80,7 @@ function fillSection(elementId, plants, emptyMsg) {
 
 // ---------- Onglet Liste ----------
 async function loadAllPlants() {
-    const res = await fetch("/api/plants");
+    const res = await fetch("api/plants");
     const plants = await res.json();
 
     const container = document.getElementById("all-plants-list");
@@ -151,7 +151,7 @@ function resetForm() {
 }
 
 async function editPlant(id) {
-    const res = await fetch(`/api/plants/${id}`);
+    const res = await fetch(`api/plants/${id}`);
     const p = await res.json();
 
     document.getElementById("f-id").value = p.id;
@@ -183,7 +183,7 @@ async function editPlant(id) {
 
 async function deletePlant(id) {
     if (!confirm("Supprimer cette plante ?")) return;
-    const res = await fetch(`/api/plants/${id}`, { method: "DELETE" });
+    const res = await fetch(`api/plants/${id}`, { method: "DELETE" });
     if (res.ok) {
         alert("✅ Plante supprimée");
         loadAllPlants();
@@ -198,7 +198,7 @@ document.getElementById("external-search-btn").addEventListener("click", async (
     const resultsDiv = document.getElementById("external-results");
     resultsDiv.innerHTML = "<p>Recherche en cours...</p>";
 
-    const res = await fetch(`/api/external-search?q=${encodeURIComponent(query)}`);
+    const res = await fetch(`api/external-search?q=${encodeURIComponent(query)}`);
     const data = await res.json();
 
     resultsDiv.innerHTML = "";
@@ -230,7 +230,7 @@ document.getElementById("external-search-btn").addEventListener("click", async (
 });
 
 async function fillFormFromExternal(externalId) {
-    const res = await fetch(`/api/external-detail/${externalId}`);
+    const res = await fetch(`api/external-detail/${externalId}`);
     const data = await res.json();
 
     if (data.error) {
