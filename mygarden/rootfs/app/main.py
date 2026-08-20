@@ -384,7 +384,7 @@ if __name__ == "__main__":
     init_db()
     print(">>> APRES init_db", flush=True)
     
-    print("MyGarden exec ...", flush=True)
+    print("MyGarden execution ...", flush=True)
     
     print(">>> AVANT création thread", flush=True)
     scheduler_thread = threading.Thread(target=daily_scheduler, daemon=True)
