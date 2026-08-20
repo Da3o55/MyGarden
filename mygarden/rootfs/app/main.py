@@ -303,6 +303,9 @@ MQTT_USER = os.environ.get("MQTT_USER", "")
 MQTT_PASS = os.environ.get("MQTT_PASS", "")
 
 def publish_today_to_mqtt():
+    if not os.environ.get("MQTT_HOST"):
+        print("MQTT non configuré, publication ignorée.")
+        return
     now = datetime.now()
     current_month = now.month
 
@@ -367,4 +370,5 @@ def daily_scheduler():
 
 if __name__ == "__main__":
     init_db()
+    threading.Thread(target=daily_scheduler, daemon=True).start()
     app.run(host="0.0.0.0", port=8099)

@@ -2,7 +2,7 @@ name: "MyGarden"
 version: "1.0.0"
 slug: "mygarden"
 description: "Gestion de jardin - base de plantes avec calendrier d'entretien"
-url: "https://github.com/Da3o55/mygarden"
+url: "https://github.com/Da3o55/MyGarden/"
 arch:
   - aarch64
   - amd64
@@ -20,6 +20,8 @@ options:
   perenual_api_key: ""
 schema:
   perenual_api_key: str?
+services:
+  - mqtt:want
 ingress: true
 ingress_port: 8099
 ingress_stream: false
@@ -27,5 +29,3 @@ panel_icon: mdi:flower
 panel_title: MyGarden
 map:
   - share:rw
-services:
-  - mqtt:want
