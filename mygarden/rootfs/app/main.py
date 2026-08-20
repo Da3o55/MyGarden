@@ -309,7 +309,7 @@ def publish_today_to_mqtt():
         print(">>> MQTT non configuré, publication ignorée.")
         return
     # ... reste du code
-    
+
     now = datetime.now()
     current_month = now.month
 
@@ -378,5 +378,6 @@ def daily_scheduler():
 if __name__ == "__main__":
     init_db()
     print("MyGarden exec ...")
-    threading.Thread(target=daily_scheduler, daemon=True).start()
+    scheduler_thread = threading.Thread(target=daily_scheduler, daemon=True)
+    scheduler_thread.start()
     app.run(host="0.0.0.0", port=8099)
