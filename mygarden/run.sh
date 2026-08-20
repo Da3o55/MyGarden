@@ -10,6 +10,9 @@ if bashio::services.available "mqtt"; then
     export MQTT_PORT=$(bashio::services mqtt "port")
     export MQTT_USER=$(bashio::services mqtt "username")
     export MQTT_PASS=$(bashio::services mqtt "password")
+    bashio::log.info "MQTT détecté: host=${MQTT_HOST} port=${MQTT_PORT} user=${MQTT_USER}"
+else
+    bashio::log.warning "MQTT non disponible !"
 fi
 
 mkdir -p /data
