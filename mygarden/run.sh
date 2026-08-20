@@ -17,4 +17,7 @@ fi
 
 mkdir -p /data
 cd /app
-/venv/bin/python3 main.py
+
+export PYTHONUNBUFFERED=1
+
+exec /venv/bin/python3 main.py
