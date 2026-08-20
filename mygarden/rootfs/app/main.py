@@ -1,4 +1,3 @@
-print(">>> SCRIPT DEMARRE", flush=True)   
 import os
 import sqlite3
 import requests
@@ -8,8 +7,6 @@ import paho.mqtt.client as mqtt
 import threading
 import time
 import json
-
-print(">>> SCRIPT DEMARRE", flush=True)                                                                                                                                                                                                 
 
 app = Flask(__name__, static_folder="static", static_url_path="")
 
