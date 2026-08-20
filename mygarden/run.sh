@@ -10,7 +10,7 @@ if bashio::services.available "mqtt"; then
     export MQTT_PORT=$(bashio::services mqtt "port")
     export MQTT_USER=$(bashio::services mqtt "username")
     export MQTT_PASS=$(bashio::services mqtt "password")
-    bashio::log.info "MQTT détecté: host=${MQTT_HOST} port=${MQTT_PORT} user=${MQTT_USER}"
+    bashio::log.info "MQTT détecté: host=${MQTT_HOST} port=${MQTT_PORT}"
 else
     bashio::log.warning "MQTT non disponible !"
 fi
@@ -20,4 +20,5 @@ cd /app
 
 export PYTHONUNBUFFERED=1
 
-exec /venv/bin/python3 main.py
+# TEST : Est-ce que Python existe et marche ?
+exec /venv/bin/python3 -c "print('>>> PYTHON OK'); import sys; print(f'>>> Version: {sys.version}')"
