@@ -1,4 +1,5 @@
-ARG BUILD_FROM
+ARG BUILD_FROM=homeassistant/amd64-base:latest
+
 FROM $BUILD_FROM
 
 # Installation Python + dépendances système
@@ -9,6 +10,7 @@ RUN apk add --no-cache \
     && python3 -m venv /venv
 
 ENV PATH="/venv/bin:$PATH"
+ENV PYTHONUNBUFFERED=1
 
 COPY rootfs/app /app
 WORKDIR /app
@@ -17,6 +19,6 @@ RUN /venv/bin/pip install --no-cache-dir --upgrade pip \
     && /venv/bin/pip install --no-cache-dir -r requirements.txt
 
 COPY run.sh /
-RUN chmod a+x /run.sh
+RUN chmod +x /run.sh
 
 CMD [ "/run.sh" ]
