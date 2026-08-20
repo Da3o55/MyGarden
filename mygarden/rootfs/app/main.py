@@ -8,6 +8,8 @@ import threading
 import time
 import json
 
+print(">>> SCRIPT DEMARRE", flush=True)
+
 app = Flask(__name__, static_folder="static", static_url_path="")
 
 DB_PATH = os.environ.get("DB_PATH", "/data/mygarden.db")
