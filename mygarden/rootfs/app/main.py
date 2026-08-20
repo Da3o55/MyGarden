@@ -1,3 +1,4 @@
+print(">>> SCRIPT DEMARRE", flush=True)   
 import os
 import sqlite3
 import requests
@@ -8,7 +9,7 @@ import threading
 import time
 import json
 
-print(">>> SCRIPT DEMARRE", flush=True)
+print(">>> SCRIPT DEMARRE", flush=True)                                                                                                                                                                                                 
 
 app = Flask(__name__, static_folder="static", static_url_path="")
 
