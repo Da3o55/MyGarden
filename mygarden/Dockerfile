@@ -2,6 +2,9 @@ ARG BUILD_FROM=homeassistant/amd64-base:latest
 
 FROM $BUILD_FROM
 
+# Force rebuild - Change this timestamp
+RUN echo "Build: $(date)" > /build.txt
+
 # Installation Python + dépendances système
 RUN apk add --no-cache \
     python3 \
