@@ -365,19 +365,30 @@ def publish_today_to_mqtt():
 
 
 def daily_scheduler():
-    print(">>> daily_scheduler démarré")
-    while True:
-        try:
-            print(">>> Tentative de publication MQTT...")
-            publish_today_to_mqtt()
-            print(">>> Publication MQTT terminée")
-        except Exception as e:
-            print(f">>> Erreur MQTT: {e}")
-        time.sleep(3600)
+    print(">>> ENTREE dans daily_scheduler", flush=True)
+    try:
+        while True:
+            print(">>> Boucle scheduler...", flush=True)
+            # ... ton code MQTT ...
+            time.sleep(3600)
+    except Exception as e:
+        print(f">>> ERREUR dans daily_scheduler: {e}", flush=True)
+        import traceback
+        traceback.print_exc()
 
 if __name__ == "__main__":
+    print(">>> AVANT init_db", flush=True)
     init_db()
-    print("MyGarden exec ...")
+    print(">>> APRES init_db", flush=True)
+    
+    print("MyGarden exec ...", flush=True)
+    
+    print(">>> AVANT création thread", flush=True)
     scheduler_thread = threading.Thread(target=daily_scheduler, daemon=True)
+    print(">>> APRES création thread", flush=True)
+    
     scheduler_thread.start()
+    print(">>> APRES start() du thread", flush=True)
+    
+    print(">>> AVANT app.run", flush=True)
     app.run(host="0.0.0.0", port=8099)
