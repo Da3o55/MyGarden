@@ -5,7 +5,13 @@ bashio::log.info "Démarrage de MyGarden..."
 export PERENUAL_API_KEY=$(bashio::config 'perenual_api_key')
 export DB_PATH="/data/mygarden.db"
 
-mkdir -p /data
+if bashio::services.available "mqtt"; then
+    export MQTT_HOST=$(bashio::services mqtt "host")
+    export MQTT_PORT=$(bashio::services mqtt "port")
+    export MQTT_USER=$(bashio::services mqtt "username")
+    export MQTT_PASS=$(bashio::services mqtt "password")
+fi
 
+mkdir -p /data
 cd /app
 /venv/bin/python3 main.py

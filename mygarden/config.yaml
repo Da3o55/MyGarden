@@ -27,3 +27,5 @@ panel_icon: mdi:flower
 panel_title: MyGarden
 map:
   - share:rw
+services:
+  - mqtt:want

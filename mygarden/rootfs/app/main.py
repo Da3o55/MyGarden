@@ -3,6 +3,10 @@ import sqlite3
 import requests
 from datetime import datetime
 from flask import Flask, request, jsonify, send_from_directory
+import paho.mqtt.client as mqtt
+import threading
+import time
+import json
 
 app = Flask(__name__, static_folder="static", static_url_path="")
 
@@ -102,7 +106,6 @@ def month_in_range(current_month, start, end):
         return start <= current_month <= end
     else:
         return current_month >= start or current_month <= end
-
 
 # ---------------- Routes statiques ----------------
 
@@ -293,6 +296,74 @@ def external_detail(external_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+# ---------- MQTT ----------
+MQTT_HOST = os.environ.get("MQTT_HOST", "core-mosquitto")
+MQTT_PORT = int(os.environ.get("MQTT_PORT", 1883))
+MQTT_USER = os.environ.get("MQTT_USER", "")
+MQTT_PASS = os.environ.get("MQTT_PASS", "")
+
+def publish_today_to_mqtt():
+    now = datetime.now()
+    current_month = now.month
+
+    conn = get_db()
+    plants = conn.execute("SELECT * FROM plants").fetchall()
+    conn.close()
+
+    blooming, pruning, fertilizing = [], [], []
+    for p in plants:
+        p = dict(p)
+        if month_in_range(current_month, p["bloom_start_month"], p["bloom_end_month"]):
+            blooming.append(p["common_name"])
+        if month_in_range(current_month, p["pruning_start_month"], p["pruning_end_month"]):
+            pruning.append(p["common_name"])
+        if month_in_range(current_month, p["fertilize_start_month"], p["fertilize_end_month"]):
+            fertilizing.append(p["common_name"])
+
+    client = mqtt.Client()
+    if MQTT_USER:
+        client.username_pw_set(MQTT_USER, MQTT_PASS)
+    client.connect(MQTT_HOST, MQTT_PORT, 60)
+
+    discovery_configs = {
+        "mygarden_blooming": ("Floraison en cours", "mdi:flower"),
+        "mygarden_pruning": ("Taille à prévoir", "mdi:content-cut"),
+        "mygarden_fertilizing": ("Engrais à prévoir", "mdi:sprout"),
+    }
+
+    for obj_id, (name, icon) in discovery_configs.items():
+        config_topic = f"homeassistant/sensor/{obj_id}/config"
+        config_payload = {
+            "name": name,
+            "state_topic": f"mygarden/{obj_id}/state",
+            "json_attributes_topic": f"mygarden/{obj_id}/attributes",
+            "icon": icon,
+            "unique_id": obj_id
+        }
+        client.publish(config_topic, json.dumps(config_payload), retain=True)
+
+    client.publish("mygarden/mygarden_blooming/state", str(len(blooming)), retain=True)
+    client.publish("mygarden/mygarden_blooming/attributes",
+                    json.dumps({"plants": blooming}), retain=True)
+
+    client.publish("mygarden/mygarden_pruning/state", str(len(pruning)), retain=True)
+    client.publish("mygarden/mygarden_pruning/attributes",
+                    json.dumps({"plants": pruning}), retain=True)
+
+    client.publish("mygarden/mygarden_fertilizing/state", str(len(fertilizing)), retain=True)
+    client.publish("mygarden/mygarden_fertilizing/attributes",
+                    json.dumps({"plants": fertilizing}), retain=True)
+
+    client.disconnect()
+
+
+def daily_scheduler():
+    while True:
+        try:
+            publish_today_to_mqtt()
+        except Exception as e:
+            print(f"Erreur MQTT: {e}")
+        time.sleep(3600)  # vérifie toutes les heures
 
 if __name__ == "__main__":
     init_db()
