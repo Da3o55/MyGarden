@@ -1,0 +1,1 @@
+{"name":"MyGarden","version":"1.0.0","slug":"mygarden","description":"Gestionnaire de jardin","arch":["amd64","aarch64","armv7"],"startup":"services","boot":"auto","ports":{"8099/tcp":8099},"map":["data:rw"],"options":{"trefle_token":"","timezone":"Europe/Paris"},"schema":{"trefle_token":"password","timezone":"str"}}
