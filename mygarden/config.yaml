@@ -1,0 +1,29 @@
+name: "MyGarden"
+version: "1.0.0"
+slug: "mygarden"
+description: "Gestion de jardin - base de plantes avec calendrier d'entretien"
+url: "https://github.com/Da3o55/mygarden"
+arch:
+  - aarch64
+  - amd64
+  - armhf
+  - armv7
+  - i386
+startup: application
+boot: auto
+init: false
+ports:
+  8099/tcp: 8099
+ports_description:
+  8099/tcp: "Interface web MyGarden"
+options:
+  perenual_api_key: ""
+schema:
+  perenual_api_key: str?
+ingress: true
+ingress_port: 8099
+ingress_stream: false
+panel_icon: mdi:flower
+panel_title: MyGarden
+map:
+  - share:rw

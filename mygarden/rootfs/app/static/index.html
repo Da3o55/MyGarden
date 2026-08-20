@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyGarden</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <header>
+            <h1>🌱 MyGarden</h1>
+            <nav>
+                <button class="nav-btn active" data-view="calendar">📅 Aujourd'hui</button>
+                <button class="nav-btn" data-view="list">📋 Mes plantes</button>
+                <button class="nav-btn" data-view="add">➕ Ajouter</button>
+            </nav>
+        </header>
+
+        <main>
+            <!-- Vue Calendrier -->
+            <section id="view-calendar" class="view active">
+                <h2>Actions du jour - <span id="today-date"></span></h2>
+                <div id="calendar-content" class="loading">Chargement...</div>
+            </section>
+
+            <!-- Vue Liste -->
+            <section id="view-list" class="view">
+                <div class="search-bar">
+                    <input type="text" id="search-input" placeholder="Rechercher une plante...">
+                </div>
+                <div id="plants-list" class="plants-grid"></div>
+            </section>
+
+            <!-- Vue Ajout -->
+            <section id="view-add" class="view">
+                <h2>Ajouter une plante</h2>
+
+                <div class="external-search">
+                    <h3>🔍 Rechercher dans la base externe</h3>
+                    <div class="search-bar">
+                        <input type="text" id="external-search-input" placeholder="Nom de la plante...">
+                        <button id="external-search-btn">Rechercher</button>
+                    </div>
+                    <div id="external-results"></div>
+                </div>
+
+                <form id="plant-form">
+                    <h3>Informations de la plante</h3>
+
+                    <div class="form-grid">
+                        <label>Nom commun *
+                            <input type="text" name="common_name" required>
+                        </label>
+                        <label>Nom scientifique
+                            <input type="text" name="scientific_name">
+                        </label>
+                        <label>Exposition
+                            <select name="exposure">
+                                <option value="">-- Choisir --</option>
+                                <option>Ensoleillé</option>
+                                <option>Mi-ombre</option>
+                                <option>Ombre</option>
+                            </select>
+                        </label>
+                        <label>Type de sol
+                            <input type="text" name="soil_type">
+                        </label>
+                        <label>Type de plante
+                            <select name="plant_type">
+                                <option value="">-- Choisir --</option>
+                                <option>Fleur</option>
+                                <option>Arbuste</option>
+                                <option>Arbre</option>
+                                <option>Fruitier</option>
+                                <option>Potager</option>
+                                <option>Grimpante</option>
+                                <option>Vivace</option>
+                                <option>Aromatique</option>
+                            </select>
+                        </label>
+                        <label>Rusticité
+                            <input type="text" name="hardiness" placeholder="ex: Zone 6-9 (-12°C)">
+                        </label>
+                        <label>Humidité du sol
+                            <select name="soil_humidity">
+                                <option value="">-- Choisir --</option>
+                                <option>Sec</option>
+                                <option>Frais</option>
+                                <option>Humide</option>
+                            </select>
+                        </label>
+                        <label>Type de feuillage
+                            <select name="foliage_type">
+                                <option value="">-- Choisir --</option>
+                                <option>Persistant</option>
+                                <option>Caduc</option>
+                                <option>Semi-persistant</option>
+                            </select>
+                        </label>
+                        <label>Hauteur min (m)
+                            <input type="number" step="0.1" name="height_min">
+                        </label>
+                        <label>Hauteur max (m)
+                            <input type="number" step="0.1" name="height_max">
+                        </label>
+                        <label>Début floraison (MM-JJ)
+                            <input type="text" name="flowering_start" placeholder="04-01">
+                        </label>
+                        <label>Fin floraison (MM-JJ)
+                            <input type="text" name="flowering_end" placeholder="06-30">
+                        </label>
+                        <label>Maladies connues
+                            <input type="text" name="known_diseases">
+                        </label>
+                        <label>Début taille (MM-JJ)
+                            <input type="text" name="pruning_start" placeholder="02-15">
+                        </label>
+                        <label>Fin taille (MM-JJ)
+                            <input type="text" name="pruning_end" placeholder="03-15">
+                        </label>
+                        <label class="full-width">Conseils de taille
+                            <textarea name="pruning_advice"></textarea>
+                        </label>
+                        <label>Début engrais (MM-JJ)
+                            <input type="text" name="fertilizing_start" placeholder="03-01">
+                        </label>
+                        <label>Fin engrais (MM-JJ)
+                            <input type="text" name="fertilizing_end" placeholder="03-31">
+                        </label>
+                        <label>Quantité engrais
+                            <input type="text" name="fertilizing_quantity">
+                        </label>
+                        <label>Type engrais
+                            <input type="text" name="fertilizing_type">
+                        </label>
+                        <label>Emplacement au jardin
+                            <input type="text" name="garden_location">
+                        </label>
+                        <label>Date de plantation
+                            <input type="date" name="date_planted">
+                        </label>
+                        <label class="full-width">Notes
+                            <textarea name="notes"></textarea>
+                        </label>
+                    </div>
+
+                    <input type="hidden" name="id">
+                    <button type="submit" class="btn-primary">💾 Enregistrer</button>
+                </form>
+            </section>
+        </main>
+
+        <!-- Modal détail plante -->
+        <div id="plant-modal" class="modal hidden">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <div id="modal-body"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
