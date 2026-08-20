@@ -188,6 +188,7 @@ def update_plant(plant_id):
     ))
     conn.commit()
     conn.close()
+    print("mise à jour de la plan")
     return jsonify({"message": "Plante mise à jour"})
 
 
