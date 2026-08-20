@@ -363,7 +363,6 @@ def publish_today_to_mqtt():
 
     client.disconnect()
 
-
 def daily_scheduler():
     print(">>> ENTREE dans daily_scheduler", flush=True)
     try:
