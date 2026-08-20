@@ -1,127 +1,242 @@
-from flask import Flask, jsonify, request, send_from_directory
-from datetime import date
 import os
+import sqlite3
 import requests
-
-from database import init_db, seed_if_empty
-import models
+from datetime import datetime
+from flask import Flask, request, jsonify, send_from_directory
 
 app = Flask(__name__, static_folder="static", static_url_path="")
 
-PERENUAL_API_KEY = os.getenv("PERENUAL_API_KEY", "")
+DB_PATH = os.environ.get("DB_PATH", "/data/mygarden.db")
+PERENUAL_API_KEY = os.environ.get("PERENUAL_API_KEY", "")
 PERENUAL_BASE_URL = "https://perenual.com/api"
 
+MONTHS_FR = [
+    "", "janvier", "février", "mars", "avril", "mai", "juin",
+    "juillet", "août", "septembre", "octobre", "novembre", "décembre"
+]
 
-# ---------- Init ----------
-init_db()
-seed_if_empty()
+
+def get_db():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
 
 
-# ---------- Utils calendrier ----------
-def is_date_in_range(today, start_mmdd, end_mmdd):
-    if not start_mmdd or not end_mmdd:
+def init_db():
+    conn = get_db()
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS plants (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            common_name TEXT NOT NULL,
+            scientific_name TEXT,
+            exposure TEXT,
+            soil_type TEXT,
+            plant_type TEXT,
+            hardiness TEXT,
+            soil_humidity TEXT,
+            foliage_type TEXT,
+            height TEXT,
+            bloom_start_month INTEGER,
+            bloom_end_month INTEGER,
+            known_diseases TEXT,
+            pruning_start_month INTEGER,
+            pruning_end_month INTEGER,
+            pruning_advice TEXT,
+            fertilize_start_month INTEGER,
+            fertilize_end_month INTEGER,
+            fertilize_quantity TEXT,
+            fertilize_type TEXT,
+            image_url TEXT,
+            notes TEXT,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    conn.commit()
+
+    count = conn.execute("SELECT COUNT(*) as c FROM plants").fetchone()["c"]
+    if count == 0:
+        seed_data(conn)
+    conn.close()
+
+
+def seed_data(conn):
+    plants = [
+        ("Rosier", "Rosa", "Plein soleil", "Riche, drainé", "Arbuste", "Zone 5-9",
+         "Modérée", "Caduc", "1-2 m", 5, 9, "Oïdium, taches noires, puceron",
+         2, 3, "Tailler en fin d'hiver, couper les tiges mortes à 45°, garder 3-5 branches vigoureuses",
+         3, 8, "Toutes les 6 semaines", "Engrais riche en potasse", "", ""),
+        ("Lavande", "Lavandula angustifolia", "Plein soleil", "Sableux, drainé", "Arbuste", "Zone 5-9",
+         "Faible", "Persistant", "30-60 cm", 6, 8, "Pourriture racinaire si excès d'eau",
+         3, 4, "Tailler après floraison, ne pas couper dans le bois vieux",
+         4, 5, "Une fois par an", "Engrais pauvre en azote", "", ""),
+        ("Pommier", "Malus domestica", "Plein soleil", "Riche, drainé", "Fruitier", "Zone 4-8",
+         "Modérée", "Caduc", "3-8 m", 4, 5, "Tavelure, chancre, puceron lanigère",
+         12, 2, "Taille de formation en hiver, retirer bois mort et gourmands",
+         3, 6, "2 fois par saison", "Engrais NPK équilibré + compost", "", ""),
+        ("Hortensia", "Hydrangea macrophylla", "Mi-ombre", "Riche, humide", "Arbuste", "Zone 6-9",
+         "Modérée à élevée", "Caduc", "1-2 m", 6, 9, "Oïdium, chlorose",
+         3, 3, "Couper les tiges fanées juste au-dessus du premier bourgeon",
+         4, 7, "Toutes les 4 semaines", "Engrais spécial hortensia", "", ""),
+        ("Tomate", "Solanum lycopersicum", "Plein soleil", "Riche, drainé", "Potager", "Annuelle",
+         "Élevée", "N/A", "1-2 m", 6, 9, "Mildiou, oïdium",
+         6, 8, "Supprimer les gourmands régulièrement, tailler les feuilles basses",
+         5, 8, "Toutes les 2 semaines", "Engrais riche en potasse", "", ""),
+    ]
+    conn.executemany("""
+        INSERT INTO plants (
+            common_name, scientific_name, exposure, soil_type, plant_type,
+            hardiness, soil_humidity, foliage_type, height,
+            bloom_start_month, bloom_end_month, known_diseases,
+            pruning_start_month, pruning_end_month, pruning_advice,
+            fertilize_start_month, fertilize_end_month, fertilize_quantity,
+            fertilize_type, image_url, notes
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, plants)
+    conn.commit()
+
+
+def month_in_range(current_month, start, end):
+    if start is None or end is None:
         return False
-    try:
-        current = (today.month, today.day)
-        start = tuple(int(x) for x in start_mmdd.split("-"))
-        end = tuple(int(x) for x in end_mmdd.split("-"))
-    except (ValueError, AttributeError):
-        return False
-
     if start <= end:
-        return start <= current <= end
+        return start <= current_month <= end
     else:
-        return current >= start or current <= end
+        return current_month >= start or current_month <= end
 
 
-# ---------- Routes Frontend ----------
+# ---------------- Routes statiques ----------------
+
 @app.route("/")
 def index():
     return send_from_directory("static", "index.html")
 
 
-# ---------- API Plants CRUD ----------
+# ---------------- API CRUD ----------------
+
 @app.route("/api/plants", methods=["GET"])
-def api_get_plants():
-    search = request.args.get("search")
-    if search:
-        plants = models.search_plants(search)
-    else:
-        plants = models.get_all_plants()
-    return jsonify(plants)
+def list_plants():
+    conn = get_db()
+    plants = conn.execute("SELECT * FROM plants ORDER BY common_name").fetchall()
+    conn.close()
+    return jsonify([dict(p) for p in plants])
 
 
 @app.route("/api/plants/<int:plant_id>", methods=["GET"])
-def api_get_plant(plant_id):
-    plant = models.get_plant_by_id(plant_id)
-    if not plant:
+def get_plant(plant_id):
+    conn = get_db()
+    plant = conn.execute("SELECT * FROM plants WHERE id = ?", (plant_id,)).fetchone()
+    conn.close()
+    if plant is None:
         return jsonify({"error": "Plante non trouvée"}), 404
-    return jsonify(plant)
+    return jsonify(dict(plant))
 
 
 @app.route("/api/plants", methods=["POST"])
-def api_create_plant():
-    data = request.get_json()
-    if not data or not data.get("common_name"):
-        return jsonify({"error": "Le nom commun est requis"}), 400
-    new_id = models.create_plant(data)
-    return jsonify({"id": new_id}), 201
+def create_plant():
+    data = request.json
+    conn = get_db()
+    cursor = conn.execute("""
+        INSERT INTO plants (
+            common_name, scientific_name, exposure, soil_type, plant_type,
+            hardiness, soil_humidity, foliage_type, height,
+            bloom_start_month, bloom_end_month, known_diseases,
+            pruning_start_month, pruning_end_month, pruning_advice,
+            fertilize_start_month, fertilize_end_month, fertilize_quantity,
+            fertilize_type, image_url, notes
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        data.get("common_name"), data.get("scientific_name"), data.get("exposure"),
+        data.get("soil_type"), data.get("plant_type"), data.get("hardiness"),
+        data.get("soil_humidity"), data.get("foliage_type"), data.get("height"),
+        data.get("bloom_start_month"), data.get("bloom_end_month"), data.get("known_diseases"),
+        data.get("pruning_start_month"), data.get("pruning_end_month"), data.get("pruning_advice"),
+        data.get("fertilize_start_month"), data.get("fertilize_end_month"),
+        data.get("fertilize_quantity"), data.get("fertilize_type"),
+        data.get("image_url"), data.get("notes")
+    ))
+    conn.commit()
+    new_id = cursor.lastrowid
+    conn.close()
+    return jsonify({"id": new_id, "message": "Plante ajoutée"}), 201
 
 
 @app.route("/api/plants/<int:plant_id>", methods=["PUT"])
-def api_update_plant(plant_id):
-    data = request.get_json()
-    models.update_plant(plant_id, data)
-    return jsonify({"success": True})
+def update_plant(plant_id):
+    data = request.json
+    conn = get_db()
+    conn.execute("""
+        UPDATE plants SET
+            common_name=?, scientific_name=?, exposure=?, soil_type=?, plant_type=?,
+            hardiness=?, soil_humidity=?, foliage_type=?, height=?,
+            bloom_start_month=?, bloom_end_month=?, known_diseases=?,
+            pruning_start_month=?, pruning_end_month=?, pruning_advice=?,
+            fertilize_start_month=?, fertilize_end_month=?, fertilize_quantity=?,
+            fertilize_type=?, image_url=?, notes=?
+        WHERE id=?
+    """, (
+        data.get("common_name"), data.get("scientific_name"), data.get("exposure"),
+        data.get("soil_type"), data.get("plant_type"), data.get("hardiness"),
+        data.get("soil_humidity"), data.get("foliage_type"), data.get("height"),
+        data.get("bloom_start_month"), data.get("bloom_end_month"), data.get("known_diseases"),
+        data.get("pruning_start_month"), data.get("pruning_end_month"), data.get("pruning_advice"),
+        data.get("fertilize_start_month"), data.get("fertilize_end_month"),
+        data.get("fertilize_quantity"), data.get("fertilize_type"),
+        data.get("image_url"), data.get("notes"), plant_id
+    ))
+    conn.commit()
+    conn.close()
+    return jsonify({"message": "Plante mise à jour"})
 
 
 @app.route("/api/plants/<int:plant_id>", methods=["DELETE"])
-def api_delete_plant(plant_id):
-    models.delete_plant(plant_id)
-    return jsonify({"success": True})
+def delete_plant(plant_id):
+    conn = get_db()
+    conn.execute("DELETE FROM plants WHERE id = ?", (plant_id,))
+    conn.commit()
+    conn.close()
+    return jsonify({"message": "Plante supprimée"})
 
 
-# ---------- API Calendrier ----------
-@app.route("/api/calendar/today", methods=["GET"])
-def api_calendar_today():
-    plants = models.get_all_plants()
-    today = date.today()
+# ---------------- Calendrier du jour ----------------
 
-    result = {"flowering": [], "pruning": [], "fertilizing": []}
+@app.route("/api/today", methods=["GET"])
+def today_events():
+    now = datetime.now()
+    current_month = now.month
 
-    for plant in plants:
-        base = {
-            "id": plant["id"],
-            "common_name": plant["common_name"],
-            "scientific_name": plant["scientific_name"],
-            "image_url": plant["image_url"]
-        }
+    conn = get_db()
+    plants = conn.execute("SELECT * FROM plants").fetchall()
+    conn.close()
 
-        if is_date_in_range(today, plant["flowering_start"], plant["flowering_end"]):
-            result["flowering"].append(base)
+    result = {
+        "date": now.strftime("%d/%m/%Y"),
+        "month_name": MONTHS_FR[current_month],
+        "blooming": [],
+        "pruning": [],
+        "fertilizing": []
+    }
 
-        if is_date_in_range(today, plant["pruning_start"], plant["pruning_end"]):
-            result["pruning"].append({**base, "advice": plant["pruning_advice"]})
-
-        if is_date_in_range(today, plant["fertilizing_start"], plant["fertilizing_end"]):
-            result["fertilizing"].append({
-                **base,
-                "quantity": plant["fertilizing_quantity"],
-                "type": plant["fertilizing_type"]
-            })
+    for p in plants:
+        p = dict(p)
+        if month_in_range(current_month, p["bloom_start_month"], p["bloom_end_month"]):
+            result["blooming"].append(p)
+        if month_in_range(current_month, p["pruning_start_month"], p["pruning_end_month"]):
+            result["pruning"].append(p)
+        if month_in_range(current_month, p["fertilize_start_month"], p["fertilize_end_month"]):
+            result["fertilizing"].append(p)
 
     return jsonify(result)
 
 
-# ---------- API Recherche externe (Perenual) ----------
-@app.route("/api/external/search", methods=["GET"])
-def api_external_search():
-    query = request.args.get("q")
-    if not query:
-        return jsonify({"error": "Paramètre q requis"}), 400
+# ---------------- API externe Perenual ----------------
 
+@app.route("/api/external-search", methods=["GET"])
+def external_search():
+    query = request.args.get("q", "")
     if not PERENUAL_API_KEY:
         return jsonify({"error": "Clé API Perenual non configurée"}), 400
+    if not query:
+        return jsonify({"results": []})
 
     try:
         resp = requests.get(
@@ -129,26 +244,22 @@ def api_external_search():
             params={"key": PERENUAL_API_KEY, "q": query},
             timeout=10
         )
-        resp.raise_for_status()
-        data = resp.json().get("data", [])
-
-        results = [
-            {
-                "id": item.get("id"),
+        data = resp.json()
+        results = []
+        for item in data.get("data", []):
+            results.append({
+                "external_id": item.get("id"),
                 "common_name": item.get("common_name"),
                 "scientific_name": ", ".join(item.get("scientific_name", []) or []),
-                "image_url": (item.get("default_image") or {}).get("thumbnail")
-            }
-            for item in data
-        ]
-        return jsonify(results)
-
-    except requests.exceptions.RequestException as e:
+                "image_url": (item.get("default_image") or {}).get("regular_url", "")
+            })
+        return jsonify({"results": results})
+    except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 
-@app.route("/api/external/plant/<int:external_id>", methods=["GET"])
-def api_external_plant_details(external_id):
+@app.route("/api/external-detail/<int:external_id>", methods=["GET"])
+def external_detail(external_id):
     if not PERENUAL_API_KEY:
         return jsonify({"error": "Clé API Perenual non configurée"}), 400
 
@@ -158,29 +269,31 @@ def api_external_plant_details(external_id):
             params={"key": PERENUAL_API_KEY},
             timeout=10
         )
-        resp.raise_for_status()
-        data = resp.json()
+        item = resp.json()
 
-        watering_map = {"Frequent": "Humide", "Average": "Frais", "Minimum": "Sec"}
-        sunlight = data.get("sunlight") or []
+        sunlight = item.get("sunlight") or []
+        watering = item.get("watering") or ""
+        cycle = item.get("cycle") or ""
+        hardiness = item.get("hardiness") or {}
+        hardiness_str = ""
+        if hardiness:
+            hardiness_str = f"Zone {hardiness.get('min', '')}-{hardiness.get('max', '')}"
 
         mapped = {
-            "common_name": data.get("common_name", ""),
-            "scientific_name": ", ".join(data.get("scientific_name", []) or []),
+            "common_name": item.get("common_name", ""),
+            "scientific_name": ", ".join(item.get("scientific_name", []) or []),
             "exposure": ", ".join(sunlight) if sunlight else "",
-            "soil_humidity": watering_map.get(data.get("watering"), ""),
-            "foliage_type": "Persistant" if data.get("cycle") == "Perennial" else "Caduc",
-            "plant_type": data.get("type", ""),
-            "image_url": (data.get("default_image") or {}).get("original_url", ""),
-            "source_api_id": str(data.get("id", "")),
-            "known_diseases": "",
-            "pruning_advice": "",
+            "plant_type": cycle.capitalize() if cycle else "Fleur",
+            "hardiness": hardiness_str,
+            "soil_humidity": watering,
+            "foliage_type": "Persistant" if item.get("evergreen") else "Caduc",
+            "image_url": (item.get("default_image") or {}).get("regular_url", ""),
         }
         return jsonify(mapped)
-
-    except requests.exceptions.RequestException as e:
+    except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8099, debug=False)
+    init_db()
+    app.run(host="0.0.0.0", port=8099)

@@ -2,16 +2,16 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+    font-family: 'Segoe UI', Roboto, sans-serif;
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: #f4f7f4;
+    background: #f0f4ec;
     color: #2c3e2d;
 }
 
 header {
-    background: linear-gradient(135deg, #4a7c4e, #2d5a30);
+    background: linear-gradient(135deg, #4a7c3a, #6ba05f);
     color: white;
     padding: 20px;
     text-align: center;
@@ -28,124 +28,56 @@ nav {
     flex-wrap: wrap;
 }
 
-.nav-btn {
-    background: rgba(255,255,255,0.15);
+.tab-btn {
+    background: rgba(255,255,255,0.2);
     border: none;
     color: white;
     padding: 10px 20px;
     border-radius: 20px;
     cursor: pointer;
     font-size: 14px;
-    transition: background 0.2s;
+    transition: 0.2s;
 }
 
-.nav-btn:hover {
-    background: rgba(255,255,255,0.3);
-}
-
-.nav-btn.active {
+.tab-btn:hover, .tab-btn.active {
     background: white;
-    color: #2d5a30;
+    color: #4a7c3a;
     font-weight: bold;
 }
 
 main {
     max-width: 1000px;
     margin: 20px auto;
-    padding: 0 20px;
+    padding: 0 15px;
 }
 
-.view {
+.tab-content {
     display: none;
 }
 
-.view.active {
+.tab-content.active {
     display: block;
 }
 
 #today-date {
-    color: #4a7c4e;
+    text-align: center;
+    color: #4a7c3a;
+    margin-bottom: 20px;
+    text-transform: capitalize;
 }
 
 .calendar-section {
-    background: white;
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    margin-bottom: 30px;
 }
 
 .calendar-section h3 {
+    border-bottom: 2px solid #6ba05f;
+    padding-bottom: 8px;
     margin-bottom: 15px;
-    color: #2d5a30;
+    color: #4a7c3a;
 }
 
-.calendar-item {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 12px;
-    border-bottom: 1px solid #eee;
-}
-
-.calendar-item:last-child {
-    border-bottom: none;
-}
-
-.calendar-item img {
-    width: 50px;
-    height: 50px;
-    border-radius: 8px;
-    object-fit: cover;
-    background: #eee;
-}
-
-.calendar-item .info strong {
-    display: block;
-    color: #2c3e2d;
-}
-
-.calendar-item .info em {
-    color: #888;
-    font-size: 13px;
-}
-
-.calendar-item .detail {
-    font-size: 13px;
-    color: #4a7c4e;
-    margin-top: 4px;
-}
-
-.empty-state {
-    text-align: center;
-    padding: 40px;
-    color: #888;
-}
-
-.search-bar {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-}
-
-.search-bar input {
-    flex: 1;
-    padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    font-size: 14px;
-}
-
-.search-bar button {
-    padding: 12px 20px;
-    background: #4a7c4e;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-}
-
-.plants-grid {
+.plant-cards {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 15px;
@@ -153,182 +85,173 @@ main {
 
 .plant-card {
     background: white;
-    border-radius: 12px;
+    border-radius: 10px;
     padding: 15px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    cursor: pointer;
-    transition: transform 0.2s;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    transition: 0.2s;
+    position: relative;
 }
 
 .plant-card:hover {
     transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 .plant-card img {
     width: 100%;
     height: 120px;
     object-fit: cover;
-    border-radius: 8px;
+    border-radius: 6px;
     margin-bottom: 10px;
-    background: #eee;
+    background: #e0e0e0;
 }
 
 .plant-card h4 {
-    color: #2c3e2d;
+    color: #4a7c3a;
+    margin-bottom: 5px;
+}
+
+.plant-card .scientific {
+    font-style: italic;
+    font-size: 12px;
+    color: #777;
+    margin-bottom: 8px;
+}
+
+.plant-card .info-line {
+    font-size: 13px;
     margin-bottom: 4px;
 }
 
-.plant-card em {
-    color: #888;
-    font-size: 13px;
-}
-
-.plant-card .tags {
-    margin-top: 8px;
+.card-actions {
+    margin-top: 10px;
     display: flex;
-    gap: 5px;
-    flex-wrap: wrap;
+    gap: 8px;
 }
 
-.plant-card .tag {
-    background: #e8f0e8;
-    color: #4a7c4e;
-    font-size: 11px;
-    padding: 3px 8px;
-    border-radius: 10px;
+.card-actions button {
+    flex: 1;
+    padding: 6px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
 }
 
+.btn-edit {
+    background: #f0ad4e;
+    color: white;
+}
+
+.btn-delete {
+    background: #d9534f;
+    color: white;
+}
+
+.empty-msg {
+    color: #999;
+    font-style: italic;
+    padding: 10px;
+}
+
+/* Formulaire */
 form {
     background: white;
-    border-radius: 12px;
     padding: 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-}
-
-.form-grid {
+    border-radius: 10px;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 15px;
-    margin-bottom: 20px;
+    gap: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
-.form-grid label {
-    display: flex;
-    flex-direction: column;
+form label {
+    font-weight: bold;
     font-size: 13px;
-    color: #555;
-    gap: 5px;
+    margin-top: 8px;
+    color: #4a7c3a;
 }
 
-.form-grid .full-width {
-    grid-column: 1 / -1;
-}
-
-.form-grid input,
-.form-grid select,
-.form-grid textarea {
+form input, form select, form textarea {
     padding: 8px;
-    border: 1px solid #ddd;
+    border: 1px solid #ccc;
     border-radius: 6px;
     font-size: 14px;
 }
 
-.form-grid textarea {
+form textarea {
     min-height: 60px;
     resize: vertical;
 }
 
-.btn-primary {
-    background: #4a7c4e;
+form button {
+    margin-top: 15px;
+    padding: 12px;
+    background: #4a7c3a;
     color: white;
     border: none;
-    padding: 12px 30px;
     border-radius: 8px;
+    font-size: 15px;
     cursor: pointer;
-    font-size: 14px;
+}
+
+form button:hover {
+    background: #3a6230;
+}
+
+#cancel-edit {
+    background: #999;
 }
 
 .external-search {
     background: white;
-    border-radius: 12px;
-    padding: 20px;
+    padding: 15px;
+    border-radius: 10px;
     margin-bottom: 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.external-search input {
+    width: 60%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    margin-right: 10px;
+}
+
+.external-search button {
+    padding: 8px 16px;
+    background: #4a7c3a;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
 }
 
 #external-results {
+    margin-top: 15px;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: 10px;
 }
 
-.external-result-item {
-    border: 1px solid #eee;
+.external-result-card {
+    border: 1px solid #ddd;
     border-radius: 8px;
     padding: 10px;
     cursor: pointer;
     text-align: center;
+    transition: 0.2s;
 }
 
-.external-result-item:hover {
-    background: #f0f7f0;
+.external-result-card:hover {
+    background: #f0f4ec;
+    border-color: #6ba05f;
 }
 
-.external-result-item img {
+.external-result-card img {
     width: 100%;
     height: 80px;
     object-fit: cover;
     border-radius: 6px;
-    margin-bottom: 5px;
-}
-
-.modal {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-}
-
-.modal.hidden {
-    display: none;
-}
-
-.modal-content {
-    background: white;
-    border-radius: 12px;
-    padding: 25px;
-    max-width: 600px;
-    width: 90%;
-    max-height: 80vh;
-    overflow-y: auto;
-    position: relative;
-}
-
-.close-modal {
-    position: absolute;
-    top: 15px;
-    right: 20px;
-    font-size: 24px;
-    cursor: pointer;
-    color: #888;
-}
-
-.detail-row {
-    display: flex;
-    justify-content: space-between;
-    padding: 8px 0;
-    border-bottom: 1px solid #eee;
-}
-
-.detail-row strong {
-    color: #4a7c4e;
-}
-
-.loading {
-    text-align: center;
-    padding: 40px;
-    color: #888;
+    margin-bottom: 8px;
 }
