@@ -338,25 +338,25 @@ def publish_today_to_mqtt():
                 "value_template": "{{ value_json.watering }}",
                 "device": {
                     "identifiers": [device_id],
-                    "name": plant['name'],
+                    "name": plant['common_name'],
                     "manufacturer": "MyGarden"
                 }
             }
             client.publish(discovery_topic, json.dumps(discovery_payload), qos=1, retain=True)
-            print(f"📡 Discovery publié pour {plant['name']}")
+            print(f"📡 Discovery publié pour {plant['common_name']}")
             
             # 2️⃣ MQTT STATE (les données réelles)
             state_topic = f"homeassistant/mygarden/plant/{plant['id']}/state"
             payload = {
                 "id": plant['id'],
-                "name": plant['name'],
+                "name": plant['common_name'],
                 "watering": "",
                 "sunlight": "",
                 "last_updated": datetime.now().isoformat()
             }
             
             client.publish(state_topic, json.dumps(payload), qos=1, retain=True)
-            print(f"✅ {plant['name']} publié")
+            print(f"✅ {plant['common_name']} publié")
             
         except Exception as e:
             print(f"❌ Erreur pour {plant['id']}: {e}")
