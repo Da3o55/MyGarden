@@ -1,9 +1,5 @@
-ARG BUILD_FROM=homeassistant/amd64-base:latest
-
+ARG BUILD_FROM
 FROM $BUILD_FROM
-
-# Force rebuild - Change this timestamp
-RUN echo "Build: $(date)" > /build.txt
 
 # Installation Python + dépendances système
 RUN apk add --no-cache \
@@ -13,7 +9,6 @@ RUN apk add --no-cache \
     && python3 -m venv /venv
 
 ENV PATH="/venv/bin:$PATH"
-ENV PYTHONUNBUFFERED=1
 
 COPY rootfs/app /app
 WORKDIR /app
@@ -22,6 +17,6 @@ RUN /venv/bin/pip install --no-cache-dir --upgrade pip \
     && /venv/bin/pip install --no-cache-dir -r requirements.txt
 
 COPY run.sh /
-RUN chmod +x /run.sh
+RUN chmod a+x /run.sh
 
 CMD [ "/run.sh" ]
