@@ -365,15 +365,51 @@ def publish_today_to_mqtt():
 
 def daily_scheduler():
     print(">>> ENTREE dans daily_scheduler", flush=True)
-    try:
-        while True:
-            print(">>> Boucle scheduler...", flush=True)
-            # ... ton code MQTT ...
-            time.sleep(3600)
-    except Exception as e:
-        print(f">>> ERREUR dans daily_scheduler: {e}", flush=True)
-        import traceback
-        traceback.print_exc()
+    schedule_hour = 9
+    schedule_minute = 0
+    last_run = None
+    
+    while True:
+        try:
+            now = datetime.now()
+            
+            if (now.hour == schedule_hour and 
+                now.minute == schedule_minute and 
+                last_run != now.date()):
+                
+                print("🌱 Démarrage du job daily")
+                
+                plants = get_plants_from_db()
+                print(f"📦 {len(plants)} plantes trouvées")
+                
+                for plant in plants:
+                    try:
+                        plant_data = get_plant_from_perenual(plant['id'])
+                        
+                        if plant_data:
+                            payload = {
+                                "id": plant['id'],
+                                "name": plant['name'],
+                                "watering": plant_data.get("watering", "N/A"),
+                                "sunlight": plant_data.get("sunlight", []),
+                                "last_updated": datetime.now().isoformat()
+                            }
+                            
+                            topic = f"homeassistant/mygarden/plant/{plant['id']}"
+                            client.publish(topic, json.dumps(payload), qos=1, retain=True)
+                            print(f"✅ {plant['name']} publié")
+                            
+                    except Exception as e:
+                        print(f"❌ Erreur pour {plant['name']}: {e}")
+                
+                print("✅ Job daily terminé")
+                last_run = now.date()
+            
+            time.sleep(30)
+            
+        except Exception as e:
+            print(f"❌ Erreur scheduler: {e}")
+            time.sleep(30)
 
 if __name__ == "__main__":
     print(">>> AVANT init_db", flush=True)
@@ -382,7 +418,7 @@ if __name__ == "__main__":
     
     print("MyGarden execution ...", flush=True)
     
-    print(">>> AVANT création thread...", flush=True)
+    print(">>> AVANT création thread", flush=True)
     scheduler_thread = threading.Thread(target=daily_scheduler, daemon=True)
     print(">>> APRES création thread", flush=True)
     
