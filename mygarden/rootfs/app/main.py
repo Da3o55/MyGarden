@@ -7,6 +7,16 @@ import paho.mqtt.client as mqtt
 import threading
 import time
 import json
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+# Affiche les logs en console
+handler = logging.StreamHandler()
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
 app = Flask(__name__, static_folder="static", static_url_path="")
 
