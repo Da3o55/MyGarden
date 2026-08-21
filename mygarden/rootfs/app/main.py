@@ -7,16 +7,6 @@ import paho.mqtt.client as mqtt
 import threading
 import time
 import json
-import logging
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-
-# Affiche les logs en console
-handler = logging.StreamHandler()
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
 
 app = Flask(__name__, static_folder="static", static_url_path="")
 
@@ -374,57 +364,16 @@ def publish_today_to_mqtt():
     client.disconnect()
 
 def daily_scheduler():
-    """Exécute le job daily tous les jours à 09:00"""
-    
-    schedule_hour = 9
-    schedule_minute = 0
-    last_run = None
-
-    while True:
-        try:
-            now = datetime.now()
-            
-            # Vérifie si c'est l'heure et pas déjà exécuté aujourd'hui
-            if (now.hour == schedule_hour and 
-                now.minute == schedule_minute and 
-                last_run != now.date()):
-                
-                logger.info("🌱 Démarrage du job daily")
-                
-                # Récupère les plantes
-                plants = get_plants_from_db()
-                logger.info(f"📦 {len(plants)} plantes trouvées")
-                
-                # Pour chaque plante
-                for plant in plants:
-                    try:
-                        plant_data = get_plant_from_perenual(plant['id'])
-                        
-                        if plant_data:
-                            # Publie sur MQTT
-                            payload = {
-                                "id": plant['id'],
-                                "name": plant['name'],
-                                "watering": plant_data.get("watering", "N/A"),
-                                "sunlight": plant_data.get("sunlight", []),
-                                "last_updated": datetime.now().isoformat()
-                            }
-                            
-                            topic = f"homeassistant/mygarden/plant/{plant['id']}"
-                            client.publish(topic, json.dumps(payload), qos=1, retain=True)
-                            logger.info(f"✅ {plant['name']} publié")
-                            
-                    except Exception as e:
-                        logger.error(f"❌ Erreur pour {plant['name']}: {e}")
-                
-                logger.info("✅ Job daily terminé")
-                last_run = now.date()
-            
-            time.sleep(30)
-            
-        except Exception as e:
-            logger.error(f"❌ Erreur scheduler: {e}")
-            time.sleep(30)
+    print(">>> ENTREE dans daily_scheduler", flush=True)
+    try:
+        while True:
+            print(">>> Boucle scheduler...", flush=True)
+            # ... ton code MQTT ...
+            time.sleep(3600)
+    except Exception as e:
+        print(f">>> ERREUR dans daily_scheduler: {e}", flush=True)
+        import traceback
+        traceback.print_exc()
 
 if __name__ == "__main__":
     print(">>> AVANT init_db", flush=True)
