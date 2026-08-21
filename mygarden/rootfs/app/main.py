@@ -317,105 +317,55 @@ def publish_today_to_mqtt():
     plants = conn.execute("SELECT * FROM plants").fetchall()
     conn.close()
 
-    blooming, pruning, fertilizing = [], [], []
-    for p in plants:
-        p = dict(p)
-        print(p["common_name"])
-        if month_in_range(current_month, p["bloom_start_month"], p["bloom_end_month"]):
-            blooming.append(p["common_name"])
-            print("Blooming : "+p["common_name"])
-        if month_in_range(current_month, p["pruning_start_month"], p["pruning_end_month"]):
-            pruning.append(p["common_name"])
-            print("Pruning : "+p["common_name"])
-        if month_in_range(current_month, p["fertilize_start_month"], p["fertilize_end_month"]):
-            fertilizing.append(p["common_name"])
-            print("Fertilizig : "+p["common_name"])
+    print(f"📦 {len(plants)} plantes trouvées")
 
     client = mqtt.Client()
     if MQTT_USER:
         client.username_pw_set(MQTT_USER, MQTT_PASS)
     client.connect(MQTT_HOST, MQTT_PORT, 60)
 
-    discovery_configs = {
-        "mygarden_blooming": ("Floraison en cours", "mdi:flower"),
-        "mygarden_pruning": ("Taille à prévoir", "mdi:content-cut"),
-        "mygarden_fertilizing": ("Engrais à prévoir", "mdi:sprout"),
-    }
-
-    for obj_id, (name, icon) in discovery_configs.items():
-
-        config_topic = f"hadev/sensor/{obj_id}/config"
-        config_payload = {
-            "name": name,
-            "state_topic": f"mygarden/{obj_id}/state",
-            "json_attributes_topic": f"mygarden/{obj_id}/attributes",
-            "icon": icon,
-            "unique_id": obj_id
-        }
-        client.publish(config_topic, json.dumps(config_payload), retain=True)
-
-    client.publish("mygarden/mygarden_blooming/state", str(len(blooming)), retain=True)
-    client.publish("mygarden/mygarden_blooming/attributes",
-                    json.dumps({"plants": blooming}), retain=True)
-
-    client.publish("mygarden/mygarden_pruning/state", str(len(pruning)), retain=True)
-    client.publish("mygarden/mygarden_pruning/attributes",
-                    json.dumps({"plants": pruning}), retain=True)
-
-    client.publish("mygarden/mygarden_fertilizing/state", str(len(fertilizing)), retain=True)
-    client.publish("mygarden/mygarden_fertilizing/attributes",
-                    json.dumps({"plants": fertilizing}), retain=True)
-    print(f">>> disconnect moduto")
-    client.disconnect()
-
-def daily_scheduler():
-    print(">>> ENTREE dans daily_scheduler", flush=True)
-    schedule_hour = 9
-    schedule_minute = 0
-    last_run = None
-    
-    while True:
+    for plant in plants:
         try:
-            now = datetime.now()
+            device_id = f"mygarden_plant_{plant['id']}"
             
-            if (now.hour == schedule_hour and 
-                now.minute == schedule_minute and 
-                last_run != now.date()):
-                
-                print("🌱 Démarrage du job daily")
-                
-                plants = get_plants_from_db()
-                print(f"📦 {len(plants)} plantes trouvées")
-                
-                for plant in plants:
-                    try:
-                        plant_data = get_plant_from_perenual(plant['id'])
-                        
-                        if plant_data:
-                            payload = {
-                                "id": plant['id'],
-                                "name": plant['name'],
-                                "watering": plant_data.get("watering", "N/A"),
-                                "sunlight": plant_data.get("sunlight", []),
-                                "last_updated": datetime.now().isoformat()
-                            }
-                            
-                            topic = f"homeassistant/mygarden/plant/{plant['id']}"
-                            client.publish(topic, json.dumps(payload), qos=1, retain=True)
-                            print(f"✅ {plant['name']} publié")
-                            
-                    except Exception as e:
-                        print(f"❌ Erreur pour {plant['name']}: {e}")
-                
-                print("✅ Job daily terminé")
-                last_run = now.date()
+            # 1️⃣ MQTT DISCOVERY (pour créer l'entité)
+            discovery_topic = f"homeassistant/sensor/{device_id}/config"
+            discovery_payload = {
+                "name": plant['name'],
+                "unique_id": device_id,
+                "state_topic": f"homeassistant/mygarden/plant/{plant['id']}/state",
+                "value_template": "{{ value_json.watering }}",
+                "device": {
+                    "identifiers": [device_id],
+                    "name": plant['name'],
+                    "manufacturer": "MyGarden"
+                }
+            }
+            client.publish(discovery_topic, json.dumps(discovery_payload), qos=1, retain=True)
+            print(f"📡 Discovery publié pour {plant['name']}")
             
-            time.sleep(30)
+            # 2️⃣ MQTT STATE (les données réelles)
+            state_topic = f"homeassistant/mygarden/plant/{plant['id']}/state"
+            payload = {
+                "id": plant['id'],
+                "name": plant['name'],
+                "watering": "",
+                "sunlight": "",
+                "last_updated": datetime.now().isoformat()
+            }
             
+            client.publish(state_topic, json.dumps(payload), qos=1, retain=True)
+            print(f"✅ {plant['name']} publié")
+            
+        except Exception as e:
+            print(f"❌ Erreur pour {plant['name']}: {e}")
+
+    print("✅ Job daily terminé")
+
         except Exception as e:
             print(f"❌ Erreur scheduler: {e}")
             time.sleep(30)
-
+    
 if __name__ == "__main__":
     print(">>> AVANT init_db", flush=True)
     init_db()
