@@ -358,7 +358,7 @@ def publish_today_to_mqtt():
             print(f"✅ {plant['name']} publié")
             
         except Exception as e:
-            print(f"❌ Erreur pour {plant['name']}: {e}")
+            print(f"❌ Erreur pour {plant['id']}: {e}")
 
     print("✅ Job daily terminé")
 
