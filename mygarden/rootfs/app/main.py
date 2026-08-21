@@ -362,9 +362,6 @@ def publish_today_to_mqtt():
 
     print("✅ Job daily terminé")
 
-        except Exception as e:
-            print(f"❌ Erreur scheduler: {e}")
-            time.sleep(30)
     
 if __name__ == "__main__":
     print(">>> AVANT init_db", flush=True)
