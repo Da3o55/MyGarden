@@ -419,7 +419,7 @@ if __name__ == "__main__":
     print("MyGarden execution ...", flush=True)
     
     print(">>> AVANT création thread", flush=True)
-    scheduler_thread = threading.Thread(target=daily_scheduler, daemon=True)
+    scheduler_thread = threading.Thread(target=publish_today_to_mqtt, daemon=True)
     print(">>> APRES création thread", flush=True)
     
     scheduler_thread.start()
