@@ -323,10 +323,13 @@ def publish_today_to_mqtt():
         print(p["common_name"])
         if month_in_range(current_month, p["bloom_start_month"], p["bloom_end_month"]):
             blooming.append(p["common_name"])
+            print("Blooming : "+p["common_name"])
         if month_in_range(current_month, p["pruning_start_month"], p["pruning_end_month"]):
             pruning.append(p["common_name"])
+            print("Pruning : "+p["common_name"])
         if month_in_range(current_month, p["fertilize_start_month"], p["fertilize_end_month"]):
             fertilizing.append(p["common_name"])
+            print("Fertilizig : "+p["common_name"])
 
     client = mqtt.Client()
     if MQTT_USER:
@@ -340,6 +343,7 @@ def publish_today_to_mqtt():
     }
 
     for obj_id, (name, icon) in discovery_configs.items():
+
         config_topic = f"hadev/sensor/{obj_id}/config"
         config_payload = {
             "name": name,
