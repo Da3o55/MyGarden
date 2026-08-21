@@ -325,6 +325,7 @@ def publish_today_to_mqtt():
     client.connect(MQTT_HOST, MQTT_PORT, 60)
 
     for plant in plants:
+        print(plant['id'])
         try:
             device_id = f"mygarden_plant_{plant['id']}"
             
