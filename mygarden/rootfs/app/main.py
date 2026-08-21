@@ -332,7 +332,7 @@ def publish_today_to_mqtt():
             # 1️⃣ MQTT DISCOVERY (pour créer l'entité)
             discovery_topic = f"homeassistant/sensor/{device_id}/config"
             discovery_payload = {
-                "name": plant['name'],
+                "name": plant['common_name'],
                 "unique_id": device_id,
                 "state_topic": f"homeassistant/mygarden/plant/{plant['id']}/state",
                 "value_template": "{{ value_json.watering }}",
