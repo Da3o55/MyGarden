@@ -320,6 +320,7 @@ def publish_today_to_mqtt():
     blooming, pruning, fertilizing = [], [], []
     for p in plants:
         p = dict(p)
+        print(p["common_name"])
         if month_in_range(current_month, p["bloom_start_month"], p["bloom_end_month"]):
             blooming.append(p["common_name"])
         if month_in_range(current_month, p["pruning_start_month"], p["pruning_end_month"]):
@@ -339,7 +340,7 @@ def publish_today_to_mqtt():
     }
 
     for obj_id, (name, icon) in discovery_configs.items():
-        config_topic = f"homeassistant/sensor/{obj_id}/config"
+        config_topic = f"hadev/sensor/{obj_id}/config"
         config_payload = {
             "name": name,
             "state_topic": f"mygarden/{obj_id}/state",
@@ -360,7 +361,7 @@ def publish_today_to_mqtt():
     client.publish("mygarden/mygarden_fertilizing/state", str(len(fertilizing)), retain=True)
     client.publish("mygarden/mygarden_fertilizing/attributes",
                     json.dumps({"plants": fertilizing}), retain=True)
-
+    print(f">>> disconnect moduto")
     client.disconnect()
 
 def daily_scheduler():
